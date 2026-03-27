@@ -23,6 +23,18 @@ const Register = () => {
     try {
       setError('');
       setSuccess('');
+      
+      if (!formData.email.endsWith('@srmap.edu.in')) {
+        return setError("Only @srmap.edu.in email addresses are allowed.");
+      }
+
+      if (formData.role === 'student' && formData.phone) {
+        const phoneRegex = /^(?:\+91|91)?\s?[6789]\d{9}$/;
+        if (!phoneRegex.test(formData.phone)) {
+          return setError("Please provide a valid Indian phone number (+91).");
+        }
+      }
+
       setLoading(true);
 
       if (formData.role === 'student' && !otpSent) {

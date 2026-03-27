@@ -8,6 +8,10 @@ const Otp = require('../models/Otp');
 router.post('/send-otp', async (req, res) => {
   try {
     const { email } = req.body;
+
+    if (!email.endsWith('@srmap.edu.in')) {
+      return res.status(400).send("Only @srmap.edu.in email addresses are allowed.");
+    }
     
     const emailExist = await User.findOne({ email });
     if (emailExist) return res.status(400).send("Email already registered");
@@ -45,11 +49,22 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, admissionNumber, password, role, course, yearOfStudy, cgpa, phone, otp } = req.body;
     
+    if (!email.endsWith('@srmap.edu.in')) {
+      return res.status(400).send("Only @srmap.edu.in email addresses are allowed.");
+    }
+
+    const userRole = role || "student";
+
+    if (userRole === "student" && phone) {
+      const phoneRegex = /^(?:\+91|91)?\s?[6789]\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        return res.status(400).send("Please provide a valid Indian phone number (+91).");
+      }
+    }
+    
     // Check if user exists
     const emailExist = await User.findOne({ email });
     if (emailExist) return res.status(400).send("Email already exists");
-    
-    const userRole = role || "student";
 
     if (userRole === "student") {
       if (!otp) return res.status(400).send("OTP is required to verify student email.");
