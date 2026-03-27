@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+dist/
+.cache/
+
+# Environment Variables - NEVER commit these
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Build output
+build/
