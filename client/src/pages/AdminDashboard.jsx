@@ -35,7 +35,9 @@ const AdminDashboard = () => {
     lng: defaultCenter.lng,
     radius: 100,
     requiredDuration: 120,
+    startDate: '',
     startTime: '',
+    endDate: '',
     endTime: ''
   });
 
@@ -73,8 +75,8 @@ const AdminDashboard = () => {
         location: { lat: Number(formData.lat), lng: Number(formData.lng) },
         radius: Number(formData.radius),
         requiredDuration: Number(formData.requiredDuration),
-        startTime: new Date(formData.startTime).toISOString(),
-        endTime: new Date(formData.endTime).toISOString()
+        startTime: new Date(`${formData.startDate}T${formData.startTime}`).toISOString(),
+        endTime: new Date(`${formData.endDate}T${formData.endTime}`).toISOString()
       };
       
       await axios.post('http://localhost:5000/api/events/create', payload, {
@@ -84,7 +86,7 @@ const AdminDashboard = () => {
       fetchEvents();
       setFormData({
         title: '', description: '', lat: defaultCenter.lat, lng: defaultCenter.lng, radius: 100, requiredDuration: 120,
-        startTime: '', endTime: ''
+        startDate: '', startTime: '', endDate: '', endTime: ''
       });
     } catch (err) {
       alert("Error creating event");
@@ -121,7 +123,8 @@ const AdminDashboard = () => {
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3">Manage Events</h2>
           <button 
-            onClick={() => setShowForm(!showForm)} 
+            type="button"
+            onClick={() => setShowForm(true)} 
             className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-lg shadow-sm hover:cursor-pointer transition hover:shadow-md"
           >
             <Plus size={18} /> <span className="font-medium">Create Event</span>
@@ -197,13 +200,25 @@ const AdminDashboard = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Required Duration (mins)</label>
                 <input required type="number" name="requiredDuration" value={formData.requiredDuration} onChange={handleChange} className="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                <input required type="datetime-local" name="startTime" value={formData.startTime} onChange={handleChange} className="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                  <input required type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                  <input required type="time" name="startTime" value={formData.startTime} onChange={handleChange} className="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700" />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                <input required type="datetime-local" name="endTime" value={formData.endTime} onChange={handleChange} className="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                  <input required type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                  <input required type="time" name="endTime" value={formData.endTime} onChange={handleChange} className="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700" />
+                </div>
               </div>
               
               <div className="col-span-1 md:col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">

@@ -3,17 +3,32 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { MapPin, AlertTriangle, CheckCircle, Navigation, Clock, Activity, Loader } from 'lucide-react';
+import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '250px',
+  borderRadius: '0.75rem'
+};
 
 const Tracker = () => {
   const { eventId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+  });
+
   const [status, setStatus] = useState('Initializing...');
   const [isInside, setIsInside] = useState(null);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [distance, setDistance] = useState(null);
+  const [currentLoc, setCurrentLoc] = useState(null);
+  const [evtLoc, setEvtLoc] = useState(null);
+  const [evtRadius, setEvtRadius] = useState(null);
   
   const timerRef = useRef(null);
   const isInsideRef = useRef(false);
@@ -35,7 +50,8 @@ const Tracker = () => {
         async (position) => {
           try {
             const { latitude, longitude, accuracy } = position.coords;
-            if (accuracy > 50) {
+            setCurrentLoc({ lat: latitude, lng: longitude });
+            if (accuracy > 1000) { // Relaxed to 1000m for laptop testing
               setStatus(`Poor GPS accuracy (${Math.round(accuracy)}m). Waiting for better signal...`);
               return;
             }
@@ -58,6 +74,8 @@ const Tracker = () => {
             }
             setStats(data);
             if (data.distance) setDistance(data.distance);
+            if (data.eventLocation) setEvtLoc(data.eventLocation);
+            if (data.eventRadius) setEvtRadius(data.eventRadius);
             
             if (data.status === 'rejected') {
               setError("Your OD has been rejected because you left the area for too long.");
@@ -137,6 +155,40 @@ const Tracker = () => {
                 </div>
               )}
             </div>
+
+            {isLoaded && currentLoc && evtLoc && (
+              <div className="mb-6 rounded-2xl overflow-hidden border border-gray-200 shadow-sm relative">
+                {!import.meta.env.VITE_GOOGLE_MAPS_API_KEY && (
+                  <div className="absolute top-2 left-2 right-2 z-10 bg-yellow-50/90 backdrop-blur text-yellow-800 text-xs p-1.5 rounded shadow-sm border border-yellow-200 text-center font-medium">
+                    Development Mode Map
+                  </div>
+                )}
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={currentLoc}
+                  zoom={17}
+                  options={{ mapTypeControl: false, streetViewControl: false, fullscreenControl: false }}
+                >
+                  <Marker position={currentLoc} title="You" />
+                  <Circle
+                    center={evtLoc}
+                    radius={evtRadius}
+                    options={{
+                      fillColor: '#3b82f6',
+                      fillOpacity: 0.15,
+                      strokeColor: '#2563eb',
+                      strokeOpacity: 0.8,
+                      strokeWeight: 2,
+                    }}
+                  />
+                  <Marker 
+                    position={evtLoc} 
+                    icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }} 
+                    title="Event Center"
+                  />
+                </GoogleMap>
+              </div>
+            )}
 
             {stats && (
               <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mb-6 text-left space-y-4">

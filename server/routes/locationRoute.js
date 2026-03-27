@@ -19,7 +19,7 @@ router.post('/ping', verifyToken, async (req, res) => {
   try {
     const { eventId, lat, lng, accuracy, sessionId, timestamp } = req.body;
     
-    if (accuracy > 50) {
+    if (accuracy > 1000) {
        return res.json({ message: "Poor GPS accuracy ignored", isInside: null });
     }
 
@@ -63,7 +63,7 @@ router.post('/ping', verifyToken, async (req, res) => {
     participation.lastLng = lng;
 
     const distance = getDistance(event.location.lat, event.location.lng, lat, lng);
-    const insideRadius = distance <= event.radius;
+    const insideRadius = distance <= (event.radius + 15); // 15m GPS buffer
     
     const timeSinceLastPing = participation.lastPing ? (now - participation.lastPing) / 1000 : 0;
 
@@ -102,6 +102,8 @@ router.post('/ping', verifyToken, async (req, res) => {
     res.json({ 
       isInside: insideRadius, 
       distance,
+      eventLocation: event.location,
+      eventRadius: event.radius,
       totalInsideTime: participation.totalInsideTime,
       requiredSeconds: reqSeconds,
       status: participation.status 

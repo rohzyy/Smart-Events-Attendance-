@@ -176,7 +176,10 @@ const StudentDashboard = () => {
 
                 <div className="mt-auto w-full">
                   {evt.status === 'live' && participation.status === 'pending' ? (
-                    <button onClick={() => handleStartTracking(evt._id)} className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-bold flex justify-center items-center gap-2 hover:from-emerald-600 hover:to-green-700 hover:cursor-pointer transition shadow-sm hover:shadow">
+                    <button onClick={() => {
+                        localStorage.setItem(`session_${evt._id}`, participation.sessionId);
+                        handleStartTracking(evt._id);
+                      }} className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-bold flex justify-center items-center gap-2 hover:from-emerald-600 hover:to-green-700 hover:cursor-pointer transition shadow-sm hover:shadow">
                       <Navigation size={18} /> Start Area Tracking
                     </button>
                   ) : (

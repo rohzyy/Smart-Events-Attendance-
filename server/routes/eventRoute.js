@@ -28,7 +28,11 @@ router.post('/create', verifyToken, authorize(['lead', 'faculty']), async (req, 
 // Get all events
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const events = await Event.find().populate('createdBy', 'name email').sort({ startTime: 1 });
+    let filter = {};
+    if (req.user.role === 'lead') {
+      filter.createdBy = req.user._id;
+    }
+    const events = await Event.find(filter).populate('createdBy', 'name email').sort({ startTime: 1 });
     res.json(events);
   } catch (err) {
     res.status(500).json({ error: err.message });
