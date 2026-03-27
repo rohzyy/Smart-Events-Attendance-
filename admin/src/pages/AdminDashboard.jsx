@@ -48,7 +48,7 @@ const AdminDashboard = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/events', {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/events`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setEvents(res.data);
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
         endTime: new Date(`${formData.endDate}T${formData.endTime}`).toISOString()
       };
       
-      await axios.post('http://localhost:5000/api/events/create', payload, {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/events/create`, payload, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setShowForm(false);
@@ -100,7 +100,7 @@ const AdminDashboard = () => {
 
   const handleStatusChange = async (eventId, newStatus) => {
     try {
-      await axios.patch(`http://localhost:5000/api/events/${eventId}/status`, { status: newStatus }, {
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/events/${eventId}/status`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       fetchEvents();
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
       const formData = new FormData();
       formData.append("file", uploadFile);
 
-      await axios.post(`http://localhost:5000/api/whitelist/${uploadModalEventId}/upload`, formData, {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/whitelist/${uploadModalEventId}/upload`, formData, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       

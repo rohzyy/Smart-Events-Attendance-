@@ -21,7 +21,7 @@ const StudentDashboard = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/events', {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/events`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setEvents(res.data.filter(e => e.status !== 'ended'));
@@ -32,7 +32,7 @@ const StudentDashboard = () => {
 
   const fetchMyEvents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/participation/my-events', {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/participation/my-events`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setMyEvents(res.data);
@@ -44,7 +44,7 @@ const StudentDashboard = () => {
   const handleJoin = async (eventId) => {
     try {
       setJoinError('');
-      const res = await axios.post(`http://localhost:5000/api/participation/${eventId}/join`, 
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/participation/${eventId}/join`, 
         { course: 'B.Tech', cgpa: 9.0 },
         { headers: { Authorization: `Bearer ${user.token}` }}
       );

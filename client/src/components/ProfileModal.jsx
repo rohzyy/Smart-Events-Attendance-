@@ -28,7 +28,7 @@ const ProfileModal = ({ isOpen, onClose, authUser, updateAuthUser }) => {
     try {
       setFetching(true);
       setError('');
-      const res = await axios.get('http://localhost:5000/api/user/profile', {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/user/profile`, {
         headers: { Authorization: `Bearer ${authUser.token}` }
       });
       const data = res.data;
@@ -68,7 +68,7 @@ const ProfileModal = ({ isOpen, onClose, authUser, updateAuthUser }) => {
         payload.cgpa = Number(formData.cgpa) || 0;
       }
 
-      const res = await axios.put('http://localhost:5000/api/user/profile', payload, {
+      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/user/profile`, payload, {
         headers: { Authorization: `Bearer ${authUser.token}` }
       });
       

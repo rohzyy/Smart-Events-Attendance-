@@ -14,7 +14,7 @@ const EventDetails = () => {
   useEffect(() => {
     const fetchParticipants = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/participation/${eventId}/participants`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/participation/${eventId}/participants`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         setParticipants(res.data);

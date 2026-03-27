@@ -38,14 +38,14 @@ const Register = () => {
       setLoading(true);
 
       if (formData.role === 'student' && !otpSent) {
-        await axios.post('http://localhost:5000/api/auth/send-otp', { email: formData.email });
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/auth/send-otp`, { email: formData.email });
         setOtpSent(true);
         setSuccess('OTP sent to your email. Please check your inbox.');
         setLoading(false);
         return;
       }
 
-      await axios.post('http://localhost:5000/api/auth/register', formData);
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/auth/register`, formData);
       setSuccess('Account created successfully! Redirecting...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
