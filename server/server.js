@@ -7,7 +7,44 @@ const authRoute = require('./routes/authRoute');
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://smart-events-attendance.vercel.app',
+    'https://smart-od-admin.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:5174',
+  ],
+  credentials: true,
+}));
+
+// ─── Serverless MongoDB Connection Cache ──────────────────────────────────────
+// On Vercel, each cold-start runs module-level code fresh, but warm invocations
+// reuse the same Node.js context. We cache the connection promise so we don't
+// re-connect on every warm request. We also await it inside a middleware so that
+// the first request on a cold-start waits for the DB before running route logic.
+let connectionPromise = null;
+
+async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return; // already connected
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+    });
+  }
+  await connectionPromise;
+}
+
+// Inject connection wait into every incoming request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    res.status(500).json({ message: 'Database connection failed', error: err.message });
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Routes
 app.use('/api/auth', authRoute);
@@ -26,18 +63,12 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    // Vercel Serverless Native: Vercel manages the HTTP listening daemon for us.
-    // If we call app.listen() natively on Vercel, it throws EADDRINUSE or completely hangs.
-    if (!process.env.VERCEL) {
-      app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-    }
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-  });
+// Only bind a port listener when running locally (not on Vercel)
+if (!process.env.VERCEL) {
+  connectDB().then(() => {
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  }).catch(err => console.error('MongoDB connection error:', err));
+}
 
-// Export the Express App core for Vercel Serverless deployment
+// Export the Express App for Vercel Serverless
 module.exports = app;
