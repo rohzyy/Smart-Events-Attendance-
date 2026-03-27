@@ -21,7 +21,7 @@ const Login = () => {
       const payload = await login(credentials);
       
       if (payload.role === 'student') {
-        return setError("Access Denied: Please use the Student Portal (http://localhost:5173)");
+        return setError("Access Denied: Please use the Student Portal (https://smart-events-attendance.vercel.app)");
       } else {
         navigate('/admin');
       }
