@@ -3,13 +3,15 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { MapPin, Clock, CalendarDays, CheckCircle, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ProfileModal from '../components/ProfileModal';
 
 const StudentDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [events, setEvents] = useState([]);
   const [myEvents, setMyEvents] = useState([]);
   const [activeTab, setActiveTab] = useState('browse');
   const [joinError, setJoinError] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,7 +70,9 @@ const StudentDashboard = () => {
           <p className="text-sm text-gray-500 font-medium">{user?.admissionNumber}</p>
         </div>
         <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold rounded-full bg-blue-50 text-blue-700 px-3 py-1 border border-blue-100">{user?.name}</span>
+            <button onClick={() => setShowProfileModal(true)} className="text-sm font-semibold rounded-full bg-blue-50 text-blue-700 px-3 py-1 border border-blue-100 hover:bg-blue-100 hover:cursor-pointer transition duration-150">
+              {user?.name}
+            </button>
             <button onClick={logout} className="text-red-500 hover:text-red-700 font-medium hover:cursor-pointer transition duration-150 text-sm bg-red-50 px-3 py-1.5 rounded hover:bg-red-100">
             Logout
             </button>
@@ -121,6 +125,10 @@ const StudentDashboard = () => {
                   {hasJoined ? (
                     <button disabled className="w-full py-2.5 bg-green-50 text-green-700 rounded-lg font-medium border border-green-200 flex justify-center items-center gap-2 cursor-not-allowed">
                       <CheckCircle size={18} /> Registered
+                    </button>
+                  ) : evt.hasWhitelist && !evt.isWhitelisted ? (
+                    <button disabled className="w-full py-2.5 bg-gray-50 text-gray-400 rounded-lg font-medium flex justify-center items-center cursor-not-allowed border border-gray-200 shadow-inner">
+                      You are not eligible for this event
                     </button>
                   ) : (
                     <button onClick={() => handleJoin(evt._id)} className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 hover:cursor-pointer transition shadow-sm">
@@ -198,6 +206,13 @@ const StudentDashboard = () => {
           </div>
         )}
       </main>
+
+      <ProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)}
+        authUser={user}
+        updateAuthUser={updateUser}
+      />
     </div>
   );
 };

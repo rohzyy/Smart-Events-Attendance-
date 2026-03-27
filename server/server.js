@@ -11,9 +11,11 @@ app.use(cors());
 
 // Routes
 app.use('/api/auth', authRoute);
+app.use('/api/user', require('./routes/userRoute'));
 app.use('/api/events', require('./routes/eventRoute'));
 app.use('/api/participation', require('./routes/participationRoute'));
 app.use('/api/location', require('./routes/locationRoute'));
+app.use('/api/whitelist', require('./routes/whitelistRoute'));
 
 const startCronJobs = require('./services/cronJobs');
 startCronJobs();

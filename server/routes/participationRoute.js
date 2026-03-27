@@ -21,15 +21,27 @@ router.post('/:eventId/join', verifyToken, async (req, res) => {
     
     const now = new Date();
     
-    // Prevent late entry exploit
-    // event.endTime - requiredDuration (in minutes)
+    // We allow joining at any time while LIVE. The ending Cron job handles calculating if they met the required metrics.
     const requiredMs = event.requiredDuration * 60000;
     const latestEntryTime = new Date(event.endTime.getTime() - requiredMs);
     
-    if (now > latestEntryTime) {
-      return res.status(400).json({ error: "Too late to join. Cannot fulfill required duration." });
+    if (!event.hasWhitelist) {
+      return res.status(400).json({ error: "Whitelist not uploaded yet. Event is locked." });
     }
-    
+
+    const AllowedParticipant = require('../models/AllowedParticipant');
+    const allowed = await AllowedParticipant.findOne({
+      eventId,
+      $or: [
+        { admissionNumber: req.user.admissionNumber },
+        { email: req.user.email }
+      ]
+    });
+
+    if (!allowed) {
+      return res.status(403).json({ error: "You are not allowed to join this event." });
+    }
+
     // Check if already joined
     const existing = await Participation.findOne({ userId: req.user._id, eventId });
     if (existing) {
@@ -43,6 +55,10 @@ router.post('/:eventId/join', verifyToken, async (req, res) => {
     
     const sessionId = crypto.randomBytes(16).toString('hex');
     
+    // Mark as joined in the whitelist tracking
+    allowed.hasJoined = true;
+    await allowed.save();
+
     const participation = new Participation({
       userId: req.user._id,
       eventId: eventId,

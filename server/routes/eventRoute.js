@@ -33,6 +33,40 @@ router.get('/', verifyToken, async (req, res) => {
       filter.createdBy = req.user._id;
     }
     const events = await Event.find(filter).populate('createdBy', 'name email').sort({ startTime: 1 });
+    
+    if (req.user.role === 'student') {
+      const AllowedParticipant = require('../models/AllowedParticipant');
+      const eventsWithEligibility = await Promise.all(events.map(async (event) => {
+        const allowed = await AllowedParticipant.findOne({
+          eventId: event._id,
+          $or: [
+            { admissionNumber: req.user.admissionNumber },
+            { email: req.user.email }
+          ]
+        });
+        
+        return {
+          ...event.toObject(),
+          isWhitelisted: !!allowed
+        };
+      }));
+      return res.json(eventsWithEligibility);
+    }
+
+    if (req.user.role === 'lead' || req.user.role === 'faculty') {
+      const AllowedParticipant = require('../models/AllowedParticipant');
+      const eventsWithStats = await Promise.all(events.map(async (event) => {
+        const total = await AllowedParticipant.countDocuments({ eventId: event._id });
+        const joined = await AllowedParticipant.countDocuments({ eventId: event._id, hasJoined: true });
+        
+        return {
+          ...event.toObject(),
+          whitelistStats: { total, joined }
+        };
+      }));
+      return res.json(eventsWithStats);
+    }
+
     res.json(events);
   } catch (err) {
     res.status(500).json({ error: err.message });

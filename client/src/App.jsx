@@ -3,10 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import AdminDashboard from './pages/AdminDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import Tracker from './pages/Tracker';
-import EventDetails from './pages/EventDetails';
 
 const PrivateRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
@@ -41,23 +39,7 @@ function App() {
               </PrivateRoute>
             } 
           />
-          <Route 
-            path="/admin" 
-            element={
-              <PrivateRoute roles={['lead', 'faculty']}>
-                <AdminDashboard />
-              </PrivateRoute>
-            } 
-          />
-          <Route 
-            path="/admin/event/:eventId" 
-            element={
-              <PrivateRoute roles={['lead', 'faculty']}>
-                <EventDetails />
-              </PrivateRoute>
-            } 
-          />
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </Router>
     </AuthProvider>

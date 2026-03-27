@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Plus, MapPin, Clock, CalendarDays, Activity } from 'lucide-react';
+import { Plus, MapPin, Clock, CalendarDays, Activity, UploadCloud, Download, FileText, X } from 'lucide-react';
 import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
 import { useNavigate } from 'react-router-dom';
+import ProfileModal from '../components/ProfileModal';
 
 const mapContainerStyle = {
   width: '100%',
@@ -17,10 +18,14 @@ const defaultCenter = {
 };
 
 const AdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [uploadModalEventId, setUploadModalEventId] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   
   // Google Maps
   const { isLoaded } = useJsApiLoader({
@@ -104,6 +109,41 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleFileUpload = async (e) => {
+    e.preventDefault();
+    if (!uploadFile) return alert("Please select a file");
+    
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      await axios.post(`http://localhost:5000/api/whitelist/${uploadModalEventId}/upload`, formData, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      
+      alert("Whitelist uploaded successfully!");
+      setUploadModalEventId(null);
+      setUploadFile(null);
+      fetchEvents();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const downloadTemplate = () => {
+    const csvContent = "data:text/csv;charset=utf-8,admissionNumber,email\nAP2111001,user@srmap.edu.in";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "whitelist_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col text-gray-800">
       <nav className="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-200">
@@ -112,7 +152,9 @@ const AdminDashboard = () => {
           <p className="text-sm text-gray-500 font-medium">Community Lead & Faculty</p>
         </div>
         <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold rounded-full bg-blue-50 text-blue-700 px-3 py-1 border border-blue-100">{user?.name}</span>
+            <button onClick={() => setShowProfileModal(true)} className="text-sm font-semibold rounded-full bg-blue-50 text-blue-700 px-3 py-1 border border-blue-100 hover:bg-blue-100 hover:cursor-pointer transition duration-150">
+              {user?.name}
+            </button>
             <button onClick={logout} className="text-red-500 hover:text-red-700 font-medium hover:cursor-pointer transition duration-150 text-sm bg-red-50 px-3 py-1.5 rounded hover:bg-red-100">
             Logout
             </button>
@@ -261,6 +303,26 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              {/* Whitelist UI Block */}
+              <div className="w-full bg-gray-50/70 p-3 rounded-lg border border-gray-100 mb-4 text-sm flex flex-col gap-2.5 shadow-inner">
+                <div className="flex justify-between items-center px-1">
+                  <span className="font-semibold text-gray-700 flex items-center gap-1.5">
+                    {evt.hasWhitelist ? '✅ Allowed List' : '❌ No Whitelist'}
+                  </span>
+                  {evt.hasWhitelist && evt.whitelistStats && (
+                    <span className="text-[11px] bg-white border border-gray-200 px-2 py-0.5 rounded-full text-gray-600 font-bold shadow-sm">
+                      <span className="text-green-600">{evt.whitelistStats.joined}</span> / {evt.whitelistStats.total} Joined
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setUploadModalEventId(evt._id)}
+                  className="w-full bg-white border border-gray-200 hover:border-blue-400 text-gray-600 hover:text-blue-600 font-medium py-1.5 rounded-md transition hover:shadow-sm flex items-center justify-center gap-2 hover:cursor-pointer shadow-sm"
+                >
+                  <FileText size={15} /> {evt.hasWhitelist ? 'Upload Replacement CSV' : 'Upload Whitelist CSV'}
+                </button>
+              </div>
+
               <div className="mt-auto w-full flex justify-between items-center bg-white">
                 <select 
                   className="bg-gray-50 border border-gray-200 outline-none text-sm p-1.5 rounded-md text-gray-700 font-medium hover:cursor-pointer focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -287,6 +349,48 @@ const AdminDashboard = () => {
           )}
         </div>
       </main>
+
+      <ProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)}
+        authUser={user}
+        updateAuthUser={updateUser}
+      />
+
+      {/* CSV Upload Modal Layer */}
+      {uploadModalEventId && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden p-6 flex flex-col gap-4 relative text-gray-800 transform transition-all scale-100">
+            <button onClick={() => setUploadModalEventId(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 hover:cursor-pointer p-1 rounded-md hover:bg-gray-100 transition"><X size={18} /></button>
+            <h3 className="text-lg font-bold flex items-center gap-2 text-gray-800 border-b border-gray-100 pb-3">
+              <UploadCloud size={20} className="text-blue-500" /> Upload Whitelist
+            </h3>
+            
+            <p className="text-sm text-gray-600 leading-relaxed mb-1">Select a standard CSV file. The columns must strictly be labeled <code className="bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 text-blue-700 font-mono text-xs">admissionNumber</code> and <code className="bg-blue-50 px-1.5 py-0.5 border border-blue-100 rounded text-blue-700 font-mono text-xs">email</code>.</p>
+            
+            <button onClick={downloadTemplate} className="w-full text-xs font-semibold flex items-center justify-center gap-1.5 bg-green-50 text-green-700 py-2 border border-green-200 rounded-lg hover:bg-green-100 hover:cursor-pointer transition shadow-sm mb-1">
+              <Download size={14} /> Download Sample Template
+            </button>
+
+            <form onSubmit={handleFileUpload} className="flex flex-col gap-4 mt-2 border-t border-dashed border-gray-200 pt-4">
+              <input 
+                type="file" 
+                accept=".csv"
+                required
+                onChange={(e) => setUploadFile(e.target.files[0])}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 file:hover:cursor-pointer file:transition cursor-pointer" 
+              />
+              
+              <button disabled={uploading} type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 rounded-lg transition hover:shadow-md disabled:opacity-50 hover:cursor-pointer flex items-center justify-center gap-2">
+                {uploading ? (
+                  <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div> Processing...</span>
+                ) : 'Deploy Whitelist Securely'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

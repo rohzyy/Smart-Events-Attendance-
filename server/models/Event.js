@@ -18,6 +18,11 @@ const EventSchema = new mongoose.Schema({
     default: "upcoming"
   },
 
+  hasWhitelist: {
+    type: Boolean,
+    default: false
+  },
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

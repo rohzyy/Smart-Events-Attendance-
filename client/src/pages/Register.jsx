@@ -6,7 +6,7 @@ import { User, Mail, CreditCard, Lock, Shield } from 'lucide-react';
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '', email: '', admissionNumber: '', password: '', role: 'student',
-    course: '', yearOfStudy: '', cgpa: '', phone: '', otp: ''
+    course: '', specialization: '', yearOfStudy: '', cgpa: '', phone: '', otp: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -97,25 +97,19 @@ const Register = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center"><Shield className="h-5 w-5 text-gray-400" /></div>
-                <select name="role" onChange={handleChange} disabled={otpSent} className="pl-10 block w-full sm:text-sm border-gray-300 outline-none rounded-md py-2 border bg-white appearance-none text-gray-700 hover:cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed">
-                  <option value="student">Student</option>
-                  <option value="lead">Community Lead</option>
-                  <option value="faculty">Faculty</option>
-                </select>
-              </div>
-            </div>
-
             {formData.role === 'student' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Course Name</label>
-                    <input disabled={otpSent} name="course" type="text" required onChange={handleChange} className="w-full outline-none sm:text-sm border-gray-300 rounded-md py-2 px-3 border disabled:bg-gray-50" placeholder="B.Tech CSE" />
+                    <input disabled={otpSent} name="course" type="text" required onChange={handleChange} className="w-full outline-none sm:text-sm border-gray-300 rounded-md py-2 px-3 border disabled:bg-gray-50" placeholder="B.Tech" />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                    <input disabled={otpSent} name="specialization" type="text" required onChange={handleChange} className="w-full outline-none sm:text-sm border-gray-300 rounded-md py-2 px-3 border disabled:bg-gray-50" placeholder="AI & ML" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Year of Study</label>
                     <input disabled={otpSent} name="yearOfStudy" type="number" min="1" max="5" required onChange={handleChange} className="w-full outline-none sm:text-sm border-gray-300 rounded-md py-2 px-3 border disabled:bg-gray-50" placeholder="3" />

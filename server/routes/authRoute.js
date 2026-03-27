@@ -146,7 +146,7 @@ router.post('/send-otp', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, admissionNumber, password, role, course, yearOfStudy, cgpa, phone, otp } = req.body;
+    const { name, email, admissionNumber, password, role, course, specialization, yearOfStudy, cgpa, phone, otp } = req.body;
     
     if (!email.endsWith('@srmap.edu.in')) {
       return res.status(400).send("Only @srmap.edu.in email addresses are allowed.");
@@ -186,6 +186,7 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
       role: userRole,
       course,
+      specialization,
       yearOfStudy,
       cgpa,
       phone,

@@ -21,7 +21,7 @@ const Login = () => {
       const payload = await login(credentials);
       
       if (payload.role === 'lead' || payload.role === 'faculty') {
-        navigate('/admin');
+        return setError("Access Denied: Please use the Admin Portal (http://localhost:5174)");
       } else {
         navigate('/dashboard');
       }
