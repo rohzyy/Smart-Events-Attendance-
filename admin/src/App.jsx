@@ -10,7 +10,7 @@ const PrivateRoute = ({ children, roles }) => {
   
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
-  if (roles && !roles.includes(user.role)) return <Navigate to="/admin" />;
+  if (roles && !roles.includes(user.role)) return <Navigate to="/login" />;
   
   return children;
 };
@@ -37,7 +37,8 @@ function App() {
               </PrivateRoute>
             } 
           />
-          <Route path="*" element={<Navigate to="/admin" />} />
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
     </AuthProvider>
