@@ -7,8 +7,8 @@ const AllowedParticipant = require("../models/AllowedParticipant");
 const Event = require("../models/Event");
 const { verifyToken } = require("../middleware/auth");
 
-// Temporary upload storage mechanism
-const upload = multer({ dest: "uploads/" });
+// Use /tmp/ for Vercel (read-only filesystem — only /tmp/ is writable in serverless)
+const upload = multer({ dest: "/tmp/" });
 
 // Upload and Parse Whitelist Route
 router.post("/:eventId/upload", verifyToken, upload.single("file"), async (req, res) => {
